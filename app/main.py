@@ -6,7 +6,7 @@ from fastapi.responses import RedirectResponse
 
 from app.config import settings
 from app.database import init_db
-from app.routers import jobs
+from app.routers import certificates, jobs
 from app.utils.validators import validation_exception_handler
 
 
@@ -25,6 +25,7 @@ app = FastAPI(
 
 app.add_exception_handler(RequestValidationError, validation_exception_handler)
 app.include_router(jobs.router)
+app.include_router(certificates.router)
 
 
 @app.get("/", include_in_schema=False)

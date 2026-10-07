@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, datetime
 
 from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
@@ -46,3 +46,5 @@ class JobStatusResponse(BaseModel):
     successful: int
     failed: int
     progress: int
+    created_at: datetime
+    completed_at: datetime | None = None
