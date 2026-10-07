@@ -1,8 +1,8 @@
 import enum
 import uuid
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 
-from sqlalchemy import DateTime, Integer, String
+from sqlalchemy import Date, DateTime, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database import Base
@@ -28,6 +28,9 @@ class Job(Base):
     __tablename__ = "jobs"
 
     id: Mapped[str] = mapped_column(String(32), primary_key=True, default=new_id)
+    title: Mapped[str] = mapped_column(String(200), nullable=False)
+    course: Mapped[str] = mapped_column(String(200), nullable=False)
+    issue_date: Mapped[date] = mapped_column(Date, nullable=False)
     status: Mapped[str] = mapped_column(String(32), default=JobStatus.PENDING.value, nullable=False)
     total_recipients: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
     successful_count: Mapped[int] = mapped_column(Integer, default=0, nullable=False)

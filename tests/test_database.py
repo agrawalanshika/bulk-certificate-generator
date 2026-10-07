@@ -1,3 +1,5 @@
+from datetime import date
+
 import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
@@ -19,7 +21,7 @@ def db():
 
 
 def test_create_job_with_certificates(db):
-    job = Job(total_recipients=2)
+    job = Job(title="T", course="C", issue_date=date(2026, 10, 7), total_recipients=2)
     job.certificates = [
         Certificate(recipient_name="Anshika Agrawal", recipient_email="anshika@example.com"),
         Certificate(recipient_name="Rahul Sharma", recipient_email="rahul@example.com"),
@@ -38,7 +40,7 @@ def test_create_job_with_certificates(db):
 
 
 def test_certificate_update(db):
-    job = Job(total_recipients=1)
+    job = Job(title="T", course="C", issue_date=date(2026, 10, 7), total_recipients=1)
     job.certificates = [Certificate(recipient_name="A", recipient_email="a@example.com")]
     db.add(job)
     db.commit()
