@@ -14,11 +14,11 @@ Built with **FastAPI**, **SQLAlchemy (SQLite)** and **ReportLab**.
 - [Project Structure](#-project-structure)
 - [Setup](#-setup)
 - [Running the Application](#-running-the-application)
+- [Quick Start](#-quick-start-try-it-in-2-minutes)
 - [API Documentation](#-api-documentation)
 - [Usage Walkthrough](#-usage-walkthrough)
 - [Statuses](#-statuses)
 - [Running Tests](#-running-tests)
-- [Docker](#-docker)
 - [Design Decisions](#-design-decisions)
 - [Error Handling](#-error-handling)
 - [Known Limitations](#-known-limitations)
@@ -51,7 +51,6 @@ Built with **FastAPI**, **SQLAlchemy (SQLite)** and **ReportLab**.
 | PDF generation | ReportLab |
 | Background work | FastAPI `BackgroundTasks` |
 | Testing | Pytest + FastAPI `TestClient` (HTTPX) |
-| Containerisation | Docker + Docker Compose |
 
 ---
 
@@ -116,8 +115,6 @@ bulk-certificate-generator/
 │       └── validators.py          # Friendly 422 error formatting
 ├── tests/                         # Pytest suite
 ├── generated/                     # Output PDFs (git-ignored)
-├── Dockerfile
-├── docker-compose.yml
 ├── requirements.txt
 ├── pytest.ini
 ├── .env.example
@@ -167,6 +164,22 @@ Database tables are created automatically on startup.
 | http://localhost:8000/docs | 📘 Swagger UI (interactive) |
 | http://localhost:8000/redoc | 📗 ReDoc |
 | http://localhost:8000/health | ❤️ Health check |
+
+---
+
+## ⚡ Quick Start (try it in 2 minutes)
+
+The easiest way to try the API is through Swagger UI:
+
+1. Start the server and open **http://localhost:8000/docs**.
+2. **`POST /api/jobs`** → *Try it out* → edit the pre-filled example → *Execute*. Copy the returned `job_id`.
+3. **`GET /api/jobs/{job_id}`** → paste the id → *Execute*. Wait for `"status": "COMPLETED"` and `"progress": 100`.
+4. **`GET /api/jobs/{job_id}/certificates`** → copy a certificate `id`.
+5. **`GET /api/certificates/{certificate_id}/download`** → *Execute* → *Download file* to open the PDF.
+
+Generated PDFs are also saved on disk under `generated/job_<job_id>/`.
+
+> 💡 **Windows tip:** inline JSON in `curl` is awkward in `cmd`. Save the request body to `request.json` and use `curl -X POST http://localhost:8000/api/jobs -H "Content-Type: application/json" -d @request.json`.
 
 ---
 
@@ -315,25 +328,11 @@ What the tests cover:
 - ✅ Job status and progress (including live `PROCESSING` state)
 - ✅ Individual certificate failure (others still succeed, error recorded)
 - ✅ Retrieval and download (headers, content, 404 and 409 cases)
+- ✅ Certificate ordering (matches submission order, even with identical timestamps)
 - ✅ Invalid job IDs and certificate IDs
 - ✅ End-to-end flow: submit → track → list → download
 
 Tests use an **in-memory SQLite database** and a **temporary output directory**, so they never touch your real data or the `generated/` folder. FastAPI's `TestClient` runs background tasks before returning, so tests can assert the final job state deterministically.
-
----
-
-## 🐳 Docker
-
-```bash
-docker compose up --build
-```
-
-The API is then available at http://localhost:8000/docs. The SQLite database and generated PDFs are stored in the `cert_data` volume, so they survive container restarts.
-
-```bash
-docker compose down        # stop (data is kept)
-docker compose down -v     # stop and delete data
-```
 
 ---
 
@@ -353,7 +352,7 @@ If any recipient in a request is invalid, the **entire request is rejected** wit
 
 ### 🗄️ Data model
 
-`jobs` (1) → (many) `certificates`. Job metadata (`title`, `course`, `issue_date`) is stored on the job so the background task can render certificates without the original request. IDs are UUID4 hex strings, which are non-guessable and safe to expose in URLs.
+`jobs` (1) → (many) `certificates`. Job metadata (`title`, `course`, `issue_date`) is stored on the job so the background task can render certificates without the original request. IDs are UUID4 hex strings, which are non-guessable and safe to expose in URLs. Each certificate stores its `position` in the original request, so listing and processing order is deterministic and never depends on timestamp resolution.
 
 ### 📈 Live progress
 
@@ -412,3 +411,4 @@ INFO  [app.services.job_processor] Job <id> completed: COMPLETED_WITH_ERRORS (2 
 - 🔐 API-key or OAuth authentication and per-user job ownership
 - 📄 Pagination and status filtering on the certificate list
 - 🔔 Webhook/callback when a job finishes
+- 🐳 Docker packaging for one-command deployment

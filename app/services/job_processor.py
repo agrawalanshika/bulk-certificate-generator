@@ -100,7 +100,7 @@ def process_job(job_id: str, session_factory=None) -> None:
         certificates = (
             db.query(Certificate)
             .filter(Certificate.job_id == job_id)
-            .order_by(Certificate.created_at, Certificate.id)
+                        .order_by(Certificate.position, Certificate.id)
             .all()
         )
 

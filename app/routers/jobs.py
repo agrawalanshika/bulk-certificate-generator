@@ -58,8 +58,8 @@ def create_job(
         total_recipients=len(payload.recipients),
     )
     job.certificates = [
-        Certificate(recipient_name=r.name, recipient_email=r.email)
-        for r in payload.recipients
+        Certificate(position=i, recipient_name=r.name, recipient_email=r.email)
+        for i, r in enumerate(payload.recipients)
     ]
     db.add(job)
     db.commit()
