@@ -6,8 +6,11 @@ from fastapi.responses import RedirectResponse
 
 from app.config import settings
 from app.database import init_db
+from app.logging_config import setup_logging
 from app.routers import certificates, jobs
 from app.utils.validators import validation_exception_handler
+
+setup_logging()
 
 
 @asynccontextmanager
