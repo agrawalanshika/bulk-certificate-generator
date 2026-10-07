@@ -38,6 +38,13 @@ def calculate_progress(job: Job) -> int:
     response_model=JobCreateResponse,
     status_code=status.HTTP_201_CREATED,
     summary="Create a bulk certificate generation job",
+    description=(
+        "Accepts one request containing many recipients. The whole request is validated "
+        "first (any invalid recipient rejects it with 422). A job is then created and "
+        "certificates are generated **in the background**; the response returns "
+        "immediately with a `job_id`. Poll `GET /api/jobs/{job_id}` for progress."
+    ),
+    responses={422: {"description": "Validation failed (details listed per field)"}},
 )
 def create_job(
     payload: JobCreateRequest,
@@ -67,6 +74,12 @@ def create_job(
     "/{job_id}",
     response_model=JobStatusResponse,
     summary="Get job status and progress",
+    description=(
+        "Returns overall status (`PENDING`, `PROCESSING`, `COMPLETED`, "
+        "`COMPLETED_WITH_ERRORS`, `FAILED`), success/failure counts and "
+        "`progress` (0-100, share of certificates already processed)."
+    ),
+    responses={404: {"description": "Job not found"}},
 )
 def get_job_status(job_id: str, db: Session = Depends(get_db)) -> JobStatusResponse:
     job = get_job_or_404(db, job_id)
@@ -86,6 +99,8 @@ def get_job_status(job_id: str, db: Session = Depends(get_db)) -> JobStatusRespo
     "/{job_id}/certificates",
     response_model=CertificateListResponse,
     summary="List all certificates of a job",
+    description="Per-certificate status. Failed certificates include an `error` message.",
+    responses={404: {"description": "Job not found"}},
 )
 def list_job_certificates(job_id: str, db: Session = Depends(get_db)) -> CertificateListResponse:
     job = get_job_or_404(db, job_id)

@@ -1,6 +1,6 @@
 from datetime import date
 
-from app.models import Certificate, Job, JobStatus
+from app.models import Job, JobStatus
 from app.services import job_processor
 
 

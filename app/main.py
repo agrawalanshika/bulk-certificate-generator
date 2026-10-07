@@ -19,10 +19,28 @@ async def lifespan(app: FastAPI):
     yield
 
 
+API_DESCRIPTION = """
+Submit **one request with many recipients** and get a PDF certificate for each.
+
+1. `POST /api/jobs` - validate the request, create a job, return a `job_id` immediately.
+2. `GET /api/jobs/{job_id}` - track status and progress while certificates generate in the background.
+3. `GET /api/jobs/{job_id}/certificates` - see each certificate's result (and error, if any).
+4. `GET /api/certificates/{certificate_id}/download` - download a generated PDF.
+
+A failure on one certificate never stops the others.
+"""
+
+TAGS_METADATA = [
+    {"name": "Jobs", "description": "Create bulk generation jobs and track their progress."},
+    {"name": "Certificates", "description": "Retrieve generated certificate PDFs."},
+    {"name": "Health", "description": "Service health check."},
+]
+
 app = FastAPI(
     title=settings.app_name,
     version=settings.app_version,
-    description="Backend API for bulk certificate generation with job tracking.",
+    description=API_DESCRIPTION,
+    openapi_tags=TAGS_METADATA,
     lifespan=lifespan,
 )
 
