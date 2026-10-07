@@ -4,8 +4,10 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
+from app.config import settings
 from app.database import Base, get_db
 from app.main import app
+from app.services import job_processor
 
 
 @pytest.fixture()
@@ -18,7 +20,14 @@ def session_factory():
 
 
 @pytest.fixture()
-def client(session_factory):
+def generated_dir(tmp_path, monkeypatch):
+    """Send generated PDFs to a temp dir instead of the real generated/ folder."""
+    monkeypatch.setattr(settings, "generated_dir", str(tmp_path))
+    return tmp_path
+
+
+@pytest.fixture()
+def client(session_factory, generated_dir, monkeypatch):
     def override_get_db():
         db = session_factory()
         try:
@@ -27,6 +36,8 @@ def client(session_factory):
             db.close()
 
     app.dependency_overrides[get_db] = override_get_db
+    # Background task opens its own session: point it at the test database too.
+    monkeypatch.setattr(job_processor, "SessionLocal", session_factory)
     yield TestClient(app)
     app.dependency_overrides.clear()
 

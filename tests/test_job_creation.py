@@ -1,6 +1,6 @@
 from datetime import date
 
-from app.models import Certificate, CertificateStatus, Job, JobStatus
+from app.models import Certificate, Job, JobStatus
 
 
 def payload(n=2):
@@ -30,9 +30,7 @@ def test_create_job_persists_job_and_certificates(client, db_session):
     assert job.course == "AI/ML Workshop"
     assert job.issue_date == date(2026, 10, 7)
     assert job.total_recipients == 3
-    assert job.successful_count == 0 and job.failed_count == 0
     assert len(job.certificates) == 3
-    assert all(c.status == CertificateStatus.PENDING.value for c in job.certificates)
     assert {c.recipient_email for c in job.certificates} == {
         "person0@example.com",
         "person1@example.com",
